@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Send, Image, Loader2, Mic, MicOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+
+
 interface ChatInputProps {
   onSendMessage: (content: string, type: 'text' | 'image' | 'audio', file?: File) => void
   disabled: boolean
@@ -63,8 +65,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
         setRecordingTime(prev => prev + 1)
       }, 1000)
 
-      // Warm up API route so dev server shows compile/POST logs immediately
-      // This does not affect UX; errors are ignored.
+      // Warm up API route
       ;(async () => {
         try {
           const fd = new FormData()
@@ -94,38 +95,47 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
     }
   }
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <AnimatePresence>
         {isRecording && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center justify-center space-x-4 p-4 bg-red-600/20 rounded-lg border border-red-600/30"
+            className="flex items-center justify-center space-x-5 p-4 bg-red-600/25 rounded-lg border border-red-600/40 shadow-md"
           >
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full pulse-recording" />
-              <span className="text-red-400 font-medium">Recording</span>
+            <div className="flex items-center space-x-3">
+              <div className="w-4 h-4 bg-red-500 rounded-full pulse-recording" />
+              <span className="text-red-400 font-semibold tracking-wide select-none">Recording</span>
             </div>
-            <span className="text-gray-300 font-mono">{`${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`}</span>
-            <Button size="sm" variant="destructive" onClick={stopRecording}>
-              <MicOff className="h-4 w-4 mr-1" /> Stop
+            <span className="text-gray-300 font-mono tabular-nums select-text">
+              {formatTime(recordingTime)}
+            </span>
+            <Button size="sm" variant="destructive" onClick={stopRecording} className="flex items-center space-x-1">
+              <MicOff className="h-4 w-4" />
+              <span>Stop</span>
             </Button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex items-end space-x-3">
+      <div className="flex items-end space-x-4">
         <div className="flex-1">
           <Textarea
             ref={textareaRef}
             placeholder="Describe your symptoms here..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyUp={handleKeyPress}
             disabled={disabled}
-            className="min-h-[44px] max-h-32 resize-none bg-gray-800/70 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 rounded-lg"
+            className="min-h-[44px] max-h-36 resize-none bg-gray-800/80 border border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 rounded-md text-base font-medium shadow-sm transition-colors"
             style={{ height: 'auto' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement
@@ -135,7 +145,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
           />
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex space-x-3">
           <input
             ref={fileInputRef}
             type="file"
@@ -143,15 +153,15 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             onChange={handleImageUpload}
             className="hidden"
           />
-          
+
           <Button
             size="icon"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isRecording}
-            className="border-gray-700 bg-gray-800/70 hover:bg-gray-700 text-gray-300 rounded-lg"
+            className="border border-gray-600 bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 rounded-md shadow-md transition-all"
           >
-            <Image className="h-4 w-4" />
+            <Image className="h-5 w-5" />
           </Button>
 
           <Button
@@ -159,23 +169,27 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             variant="outline"
             onClick={isRecording ? stopRecording : startRecording}
             disabled={disabled}
-            className={`border-gray-700 text-gray-300 ${
-              isRecording ? 'bg-red-600 hover:bg-red-700 border-red-500' : 'bg-gray-800/70 hover:bg-gray-700'
-            } rounded-lg`}
+            className={`border border-gray-600 ${
+              isRecording ? 'bg-red-600 hover:bg-red-700 border-red-500' : 'bg-gray-800/90 hover:bg-gray-700/90'
+            } text-gray-300 rounded-md shadow-md transition-all`}
           >
-            {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            {isRecording ? (
+              <MicOff className="h-5 w-5" />
+            ) : (
+              <Mic className="h-5 w-5" />
+            )}
           </Button>
 
           <Button
             size="icon"
             onClick={handleSendText}
             disabled={!message.trim() || disabled || isRecording}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md shadow-blue-900/20"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-lg shadow-blue-900/30 transition-colors"
           >
             {disabled ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </div>
