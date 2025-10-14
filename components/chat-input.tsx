@@ -109,16 +109,16 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center justify-center space-x-5 p-4 bg-red-600/25 rounded-lg border border-red-600/40 shadow-md"
+            className="flex items-center justify-center space-x-5 p-4 bg-destructive/10 rounded-xl border border-destructive/20 shadow-lg backdrop-blur-sm"
           >
             <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-red-500 rounded-full pulse-recording" />
-              <span className="text-red-400 font-semibold tracking-wide select-none">Recording</span>
+              <div className="w-4 h-4 bg-destructive rounded-full pulse-recording" />
+              <span className="text-destructive font-semibold tracking-wide select-none">Recording</span>
             </div>
-            <span className="text-gray-300 font-mono tabular-nums select-text">
+            <span className="text-foreground font-mono tabular-nums select-text text-lg">
               {formatTime(recordingTime)}
             </span>
-            <Button size="sm" variant="destructive" onClick={stopRecording} className="flex items-center space-x-1">
+            <Button size="sm" variant="destructive" onClick={stopRecording} className="flex items-center space-x-2 shadow-lg">
               <MicOff className="h-4 w-4" />
               <span>Stop</span>
             </Button>
@@ -130,12 +130,12 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
         <div className="flex-1">
           <Textarea
             ref={textareaRef}
-            placeholder="Describe your symptoms here..."
+            placeholder="Describe your symptoms here... (Press Enter to send, Shift+Enter for new line)"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyUp={handleKeyPress}
             disabled={disabled}
-            className="min-h-[44px] max-h-36 resize-none bg-gray-800/80 border border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 rounded-md text-base font-medium shadow-sm transition-colors"
+            className="min-h-[52px] max-h-36 resize-none bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-base font-medium shadow-sm transition-all duration-200 focus-ring"
             style={{ height: 'auto' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement
@@ -159,7 +159,8 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isRecording}
-            className="border border-gray-600 bg-gray-800/90 hover:bg-gray-700/90 text-gray-300 rounded-md shadow-md transition-all"
+            className="border-border bg-background hover:bg-muted text-foreground rounded-xl shadow-md transition-all duration-200 hover:shadow-lg focus-ring"
+            title="Upload image"
           >
             <Image className="h-5 w-5" />
           </Button>
@@ -169,9 +170,10 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             variant="outline"
             onClick={isRecording ? stopRecording : startRecording}
             disabled={disabled}
-            className={`border border-gray-600 ${
-              isRecording ? 'bg-red-600 hover:bg-red-700 border-red-500' : 'bg-gray-800/90 hover:bg-gray-700/90'
-            } text-gray-300 rounded-md shadow-md transition-all`}
+            className={`border-border ${
+              isRecording ? 'bg-destructive hover:bg-destructive/90 border-destructive text-destructive-foreground' : 'bg-background hover:bg-muted text-foreground'
+            } rounded-xl shadow-md transition-all duration-200 hover:shadow-lg focus-ring`}
+            title={isRecording ? "Stop recording" : "Start voice recording"}
           >
             {isRecording ? (
               <MicOff className="h-5 w-5" />
@@ -184,7 +186,8 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             size="icon"
             onClick={handleSendText}
             disabled={!message.trim() || disabled || isRecording}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-lg shadow-blue-900/30 transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl focus-ring"
+            title="Send message"
           >
             {disabled ? (
               <Loader2 className="h-5 w-5 animate-spin" />

@@ -100,13 +100,13 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-900/50 rounded-xl border border-gray-700 overflow-hidden">
+    <div className="flex flex-col h-full bg-card/30 rounded-2xl border border-border overflow-hidden shadow-lg backdrop-blur-sm">
       <ScrollArea className="flex-1 p-6">
         <ChatMessages messages={messages} isLoading={isLoading} />
         <div ref={scrollRef} />
       </ScrollArea>
       
-      <div className="border-t border-gray-700 p-4">
+      <div className="border-t border-border bg-card/50 p-6 backdrop-blur-sm">
         <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
       </div>
     </div>

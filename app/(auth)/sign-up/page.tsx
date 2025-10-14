@@ -2,30 +2,38 @@ import { SignUp } from '@clerk/nextjs'
 
 export default function SignUpPage() {
   return (
-    <div className="flex flex-col items-center space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Join Healthcare Symptom Checker
-        </h1>
-        <p className="text-gray-300">
-          Create an account to access AI-powered health insights
-        </p>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center fade-in">
+          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">🚀</span>
+          </div>
+          <h1 className="text-4xl font-bold text-foreground mb-3">
+            Join Healthcare AI
+          </h1>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            Create your account to access AI-powered health insights
+          </p>
+        </div>
+        
+        <div className="slide-in">
+          <SignUp 
+            routing="hash"
+            appearance={{
+              elements: {
+                formButtonPrimary: 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all duration-200',
+                card: 'bg-card border border-border shadow-xl backdrop-blur-sm',
+                headerTitle: 'text-foreground font-bold text-2xl',
+                headerSubtitle: 'text-muted-foreground',
+                socialButtonsBlockButton: 'border-border hover:bg-muted transition-all duration-200',
+                formFieldInput: 'bg-background border-border text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20',
+                formFieldLabel: 'text-foreground font-medium',
+                footerActionLink: 'text-primary hover:text-primary/80 transition-colors duration-200'
+              }
+            }}
+          />
+        </div>
       </div>
-      <SignUp 
-        routing="hash"
-        appearance={{
-          elements: {
-            formButtonPrimary: 'bg-blue-600 hover:bg-blue-700',
-            card: 'bg-gray-800 border border-gray-700',
-            headerTitle: 'text-white',
-            headerSubtitle: 'text-gray-300',
-            socialButtonsBlockButton: 'border-gray-600 hover:bg-gray-700',
-            formFieldInput: 'bg-gray-900 border-gray-600 text-white',
-            formFieldLabel: 'text-gray-300',
-            footerActionLink: 'text-blue-400 hover:text-blue-300'
-          }
-        }}
-      />
     </div>
   )
 }

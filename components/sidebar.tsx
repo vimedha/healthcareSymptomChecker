@@ -76,37 +76,51 @@ export function Sidebar() {
   }
 
   return (
-    <div className="w-80 border-r border-gray-700 bg-gray-800/30 backdrop-blur-sm">
+    <div className="w-80 border-r border-border bg-sidebar/50 backdrop-blur-sm">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Chat History</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-sidebar-foreground">Chat History</h2>
+          <Badge variant="outline" className="text-xs">
+            {chatHistory.length} conversations
+          </Badge>
+        </div>
         
-        <ScrollArea className="h-[calc(100vh-160px)]">
+        <ScrollArea className="h-[calc(100vh-200px)]">
           <div className="space-y-3">
             {loading ? (
-              <div className="text-gray-400 text-sm">Loading history...</div>
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center space-x-2 text-muted-foreground">
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm">Loading history...</span>
+                </div>
+              </div>
             ) : chatHistory.length === 0 ? (
-              <div className="text-gray-400 text-sm">No conversations yet</div>
+              <div className="text-center py-8">
+                <MessageCircle className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">No conversations yet</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Start a conversation to see your history here</p>
+              </div>
             ) : (
               chatHistory.map((chat) => (
-                <Card key={chat.id} className="p-4 bg-gray-700/50 border-gray-600 hover:bg-gray-700/70 transition-colors cursor-pointer">
+                <Card key={chat.id} className="p-4 bg-card/50 border-border hover:bg-card/80 transition-all duration-200 cursor-pointer group hover:shadow-md">
                   <div className="flex items-start space-x-3">
-                    <div className="text-blue-400 mt-1">
+                    <div className="text-primary mt-1 group-hover:scale-110 transition-transform duration-200">
                       {getIcon(chat.type)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs font-medium">
                           {chat.type}
                         </Badge>
-                        <div className="flex items-center text-gray-400 text-xs">
+                        <div className="flex items-center text-muted-foreground text-xs">
                           <Clock className="h-3 w-3 mr-1" />
                           {formatDate(chat.createdAt)}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-300 truncate mb-1">
+                      <p className="text-sm text-foreground truncate mb-1 font-medium">
                         {chat.symptoms || chat.audioTranscription || chat.imageName || 'Image analysis'}
                       </p>
-                      <p className="text-xs text-gray-400 line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {chat.answer.substring(0, 80)}...
                       </p>
                     </div>

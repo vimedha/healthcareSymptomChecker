@@ -30,33 +30,39 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {messages.length === 0 && !isLoading && (
-        <div className="text-center py-8">
-          <Bot className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">Start by describing your symptoms or uploading an image.</p>
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Bot className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">Ready to help!</h3>
+          <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Start by describing your symptoms, uploading an image, or recording a voice message. 
+            I&apos;ll analyze them with advanced AI technology.
+          </p>
         </div>
       )}
 
       {messages.map((message) => (
         <motion.div
           key={message.id}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
         >
           <div className={`flex items-start space-x-3 max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-            <Avatar className="w-8 h-8">
-              <AvatarFallback className={`${message.type === 'user' ? 'bg-blue-600' : 'bg-gray-600'}`}>
-                {message.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+            <Avatar className="w-10 h-10 ring-2 ring-border">
+              <AvatarFallback className={`${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                {message.type === 'user' ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
               </AvatarFallback>
             </Avatar>
             
-            <Card className={`p-4 ${message.type === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'} border-0`}>
+            <Card className={`p-5 ${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-card text-card-foreground'} border shadow-lg`}>
               {message.contentType !== 'text' && (
-                <div className="flex items-center space-x-2 mb-2">
-                  <Badge variant="secondary" className="text-xs">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Badge variant="secondary" className="text-xs font-medium">
                     {getContentIcon(message.contentType)}
                     <span className="ml-1 capitalize">{message.contentType}</span>
                   </Badge>
@@ -64,14 +70,14 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
               )}
               
               {message.transcription && (
-                <div className="mb-2 p-2 bg-gray-600/50 rounded text-sm italic">
-                  Transcription: &quot;{message.transcription}&quot;
+                <div className="mb-3 p-3 bg-muted/50 rounded-lg text-sm italic border-l-2 border-primary">
+                  <span className="font-medium text-muted-foreground">Transcription:</span> &quot;{message.transcription}&quot;
                 </div>
               )}
               
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
               
-              <div className="flex items-center justify-end mt-2 text-xs opacity-70">
+              <div className="flex items-center justify-end mt-3 text-xs opacity-60">
                 <Clock className="h-3 w-3 mr-1" />
                 {formatTime(message.timestamp)}
               </div>
@@ -82,21 +88,25 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
 
       {isLoading && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
           className="flex justify-start"
         >
           <div className="flex items-start space-x-3 max-w-3xl">
-            <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-gray-600">
-                <Bot className="h-4 w-4" />
+            <Avatar className="w-10 h-10 ring-2 ring-border">
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                <Bot className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>
-            <Card className="p-4 bg-gray-700 border-0">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            <Card className="p-5 bg-card border shadow-lg">
+              <div className="flex items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                <span className="text-sm text-muted-foreground">AI is thinking...</span>
               </div>
             </Card>
           </div>
