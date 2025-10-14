@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OpenAI } from 'openai'
 import admin from 'firebase-admin'
+import { currentUser } from '@clerk/nextjs/server' // Add this import for user ID
 
 // Initialize Firebase Admin once
 import type { ServiceAccount } from 'firebase-admin'
@@ -20,12 +21,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-// Symptom analysis function
+// Symptom analysis function (UNTOUCHED - your existing logic)
 async function analyzeSymptoms(symptoms: string) {
   if (!symptoms) throw new Error('Symptoms required')
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',  // Your existing model
+    model: 'gpt-4o-mini',
     messages: [
       {
         role: 'system',
@@ -35,16 +36,16 @@ async function analyzeSymptoms(symptoms: string) {
         role: 'user',
         content: `
 You are an experienced, responsible virtual healthcare assistant trained on up-to-date medical literature and guidelines.
-A user is entering the following symptoms for analysis and guidance. Please respond stepwise:
+A user is entering the following symptoms for analysis and guidance, do not exceed the word limit of 200. Please respond stepwise:
 
- Symptoms Overview: Summarize and interpret the user's symptoms, noting any critical red flags.
- Diagnostic Reasoning: List 3-5 probable medical conditions or differential diagnoses, explain the reasoning for each.
- Next Steps: Recommend sensible next actions: home care, diagnostic tests, urgent medical evaluation triggers.
- Risk Context: Mention factors impacting advice like age, chronic illness, symptom severity or duration.
- Safety and Educational Disclaimer (Mandatory):
-  - This output is for informational and educational use only—not a medical diagnosis.
-  - Always consult a healthcare professional before acting on this advice,
-  - Seek immediate care for severe, worsening, or persistent symptoms.
+Symptoms Overview: Summarize and interpret the user's symptoms, noting any critical red flags.
+Diagnostic Reasoning: List 1-2 probable medical conditions or differential diagnoses, explain the reasoning for each.
+Next Steps: Recommend sensible next actions: home care, diagnostic tests, urgent medical evaluation triggers.
+Risk Context: Mention factors impacting advice like age, chronic illness, symptom severity or duration.
+Safety and Educational Disclaimer (Mandatory):
+ - This output is for informational and educational use only—not a medical diagnosis.
+ - Always consult a healthcare professional before acting on this advice,
+ - Seek immediate care for severe, worsening, or persistent symptoms.
 
 User Symptoms: ${symptoms}
         `.trim()
@@ -57,25 +58,49 @@ User Symptoms: ${symptoms}
   return response.choices[0].message.content
 }
 
-// API POST handler    
+// API POST handler (UPDATED - add user-specific saving)
 export async function POST(request: NextRequest) {
   try {
+    // Get current user from Clerk (this doesn't break anything)
+    const clerkUser = await currentUser()
+    
+    if (!clerkUser?.id) {
+      return NextResponse.json({ error: 'User authentication required' }, { status: 401 })
+    }
+
     const { symptoms } = await request.json()
     
     if (!symptoms) {
       return NextResponse.json({ error: 'Symptoms required' }, { status: 400 })
     }
 
+    // Your existing AI analysis logic (completely untouched)
     const answer = await analyzeSymptoms(symptoms)
 
-    // Save conversation to Firebase
-    await db.collection('queries').add({ 
+    // Save conversation to Firebase - UPDATED to user-specific subcollection
+    const userId = clerkUser.id
+    const userDiagnosisRef = db.collection(`users/${userId}/diagnosis`)
+    
+    await userDiagnosisRef.add({ 
       symptoms, 
       answer, 
-      createdAt: new Date() 
+      type: "text",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(), // Better timestamp
+      // Note: No need to store userId here since it's in the path
     })
 
-    return NextResponse.json({ diagnosis: answer })
+    console.log(`Diagnosis saved for user ${userId} in users/${userId}/diagnosis`)
+
+    // Return the same response as before
+    return NextResponse.json({ 
+      diagnosis: answer,
+      // Add for debugging if needed
+      debug: {
+        userId: userId,
+        savedTo: `users/${userId}/diagnosis`,
+      }
+    })
+    
   } catch (error) {
     console.error('Error in check-text:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

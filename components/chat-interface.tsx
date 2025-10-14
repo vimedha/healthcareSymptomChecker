@@ -1,6 +1,6 @@
 'use client'
 
-import { useUser } from '@clerk/nextjs' // Add this import for user ID
+import { useUser } from '@clerk/nextjs' // Keep this for sidebar
 import { ChatSidebar } from "@/components/chat-sidebar"
 import { Menu } from "lucide-react"
 
@@ -23,7 +23,7 @@ export function ChatInterface() {
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
-  // Clerk user hook for sidebar (requires user ID)
+  // Clerk user hook for sidebar
   const { user } = useUser()
 
   // Chat state
@@ -38,7 +38,6 @@ export function ChatInterface() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Auto-scroll to bottom
   useEffect(() => {
     scrollToBottom()
   }, [messages])
@@ -49,7 +48,6 @@ export function ChatInterface() {
     }
   }
 
-  // Send text message handler
   const handleSendText = () => {
     if (message.trim() && !isLoading) {
       handleSendMessage(message.trim(), 'text')
@@ -60,7 +58,6 @@ export function ChatInterface() {
     }
   }
 
-  // Handle Enter key press
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -68,7 +65,6 @@ export function ChatInterface() {
     }
   }
 
-  // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -76,10 +72,8 @@ export function ChatInterface() {
     }
   }
 
-  // Start audio recording
   const startRecording = useCallback(async () => {
     try {
-      // Check if getUserMedia is available (fixes the error)
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('Microphone access is not available. Please use localhost or HTTPS.')
         return
@@ -113,7 +107,6 @@ export function ChatInterface() {
     }
   }, [])
 
-  // Stop audio recording
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
@@ -125,7 +118,6 @@ export function ChatInterface() {
     }
   }, [isRecording])
 
-  // Main message handler
   const handleSendMessage = async (
     content: string,
     type: 'text' | 'image' | 'audio',
@@ -206,24 +198,26 @@ export function ChatInterface() {
       {/* Hamburger Menu Button - Top Left */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-800/90 backdrop-blur-sm text-white hover:bg-gray-700 transition-colors"
+        className="fixed top-4 left-4 z-50 p-3 bg-gray-800/90 backdrop-blur-sm text-white hover:bg-gray-700 transition-colors rounded-lg shadow-lg"
         aria-label="Open chat history"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-6 w-6" />
       </button>
 
       {/* Sidebar Drawer */}
       <ChatSidebar 
         open={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
-        userId={user?.id || "anonymous"} // Use Clerk user ID
+        userId={user?.id || "anonymous"}
       />
 
       {/* Main Chat Content */}
-      <ScrollArea className="flex-1 p-6 overflow-y-auto space-y-6 pt-20">
-        <ChatMessages messages={messages} isLoading={isLoading} />
-        <div ref={scrollRef} />
-      </ScrollArea>
+      <div className="flex-1 p-6 overflow-y-auto pt-20"> {/* Added pt-20 to account for fixed hamburger */}
+        <ScrollArea className="space-y-6 h-full">
+          <ChatMessages messages={messages} isLoading={isLoading} />
+          <div ref={scrollRef} />
+        </ScrollArea>
+      </div>
 
       {/* Input Container - Centered with Icons on Right */}
       <div className="border-t border-gray-700 px-6 py-3 bg-gray-800/95">
@@ -265,7 +259,7 @@ export function ChatInterface() {
             </form>
           </div>
 
-          {/* Right-side Icons - Now with larger h-6 w-6 icons */}
+          {/* Right-side Icons - Larger h-6 w-6 icons */}
           <div className="flex items-center space-x-2">
             {/* File Upload */}
             <input
