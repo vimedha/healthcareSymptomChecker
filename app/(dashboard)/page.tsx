@@ -1,8 +1,7 @@
 'use client'
-
-import { ChatInterface } from '@/components/chat-interface'
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { ChatInterface } from '@/components/chat-interface'
 
 export default function DashboardPage() {
   const { user } = useUser()
@@ -25,7 +24,7 @@ export default function DashboardPage() {
               Hello, {user?.firstName || 'there'}! 👋
             </h1>
             <p className="text-gray-300">
-              I&apos;m here to help analyze your symptoms. You can describe them through text, voice, or images.
+              I'm here to help analyze your symptoms. You can describe them through text, voice, or images.
             </p>
           </div>
           <ChatInterface />

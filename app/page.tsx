@@ -1,17 +1,28 @@
-import { SignOutButton } from '@clerk/nextjs'
-import { Button } from '@/components/ui/button'
+'use client'
+import { SignOutButton, useUser } from '@clerk/nextjs'
 import DashboardPage from './(dashboard)/page'
 
 export default function HomePage() {
+  const { user } = useUser()
+
   return (
     <>
-      <div className="absolute top-4 right-4 z-50">
+      <div className="fixed top-2 right-2 z-50">
         <SignOutButton redirectUrl="/sign-in">
-          <Button variant="outline" className="border-gray-600 bg-gray-800 hover:bg-gray-700 text-gray-200">
-            Sign out
-          </Button>
+          {user?.imageUrl ? (
+            <img
+              src={user.imageUrl}
+              alt={`${user.firstName}'s profile`}
+              className="w-8 h-8 rounded-full cursor-pointer border border-gray-600"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-semibold cursor-pointer">
+              {user?.firstName?.[0] || 'U'}
+            </div>
+          )}
         </SignOutButton>
       </div>
+
       <DashboardPage />
     </>
   )
