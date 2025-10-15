@@ -14,7 +14,7 @@ export function Header() {
           </div>
           <div>
             <h1 className="font-semibold text-white text-lg md:text-xl leading-tight">
-              Healthcare AI
+            Arogya AI
             </h1>
             <p className="text-xs md:text-sm text-gray-400 tracking-wide">
               Symptom Checker

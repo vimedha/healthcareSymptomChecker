@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Healthcare Symptom Checker',
+  title: 'Arogya AI',
   description: 'AI-powered healthcare symptom analysis',
 }
 

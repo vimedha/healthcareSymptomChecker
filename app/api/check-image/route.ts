@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OpenAI } from 'openai'
 import admin from 'firebase-admin'
+import { currentUser } from '@clerk/nextjs/server'
 import serviceAccount from '../../../firebase-service-account.json'
 
-// Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
@@ -12,27 +12,28 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore()
 
-// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
 export async function POST(request: NextRequest) {
   try {
+    const clerkUser = await currentUser()
+    if (!clerkUser?.id) {
+      return NextResponse.json({ error: 'User authentication required' }, { status: 401 })
+    }
+
     const formData = await request.formData()
     const image = formData.get('image') as File
-    
     if (!image) {
       return NextResponse.json({ error: 'Image file required' }, { status: 400 })
     }
 
-    // Convert to buffer and base64 (like your Express code)
     const bytes = await image.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const base64Image = buffer.toString('base64')
     const dataUri = `data:${image.type};base64,${base64Image}`
 
-    // Use the exact same OpenAI call structure from your index.js
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
@@ -56,15 +57,19 @@ export async function POST(request: NextRequest) {
     })
 
     const answer = response.choices[0].message.content
+    const userId = clerkUser.id
+    const userDiagnosisRef = db.collection(`users/${userId}/diagnosis`)
 
-    // Save to Firebase
-    await db.collection('queries').add({
+    await userDiagnosisRef.add({
+      symptoms: "image was submitted",
       imageName: image.name,
+      imageData: dataUri,
       answer,
-      createdAt: new Date(),
+      type: "image",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     })
 
-    return NextResponse.json({ diagnosis: answer })
+    return NextResponse.json({ diagnosis: answer, imageData: dataUri })
   } catch (error) {
     console.error('Error in check-image:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
