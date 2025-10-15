@@ -2,12 +2,12 @@ import { SignUp } from '@clerk/nextjs'
 
 export default function SignUpPage() {
   return (
-    <div className="flex flex-col items-center space-y-6">
+    <div className="flex flex-col items-center space-y-4 space-x-4">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Join Healthcare Symptom Checker
+        <h1 className="text-xl font-medium text-white mb-1">
+          Sign Up at Arogya AI
         </h1>
-        <p className="text-gray-300">
+        <p className="text-gray-300 text-sm">
           Create an account to access AI-powered health insights
         </p>
       </div>
