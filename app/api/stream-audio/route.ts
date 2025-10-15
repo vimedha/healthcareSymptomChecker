@@ -3,7 +3,6 @@ import { OpenAI } from 'openai'
 import admin from 'firebase-admin'
 import serviceAccount from '../../../firebase-service-account.json'
 
-// Initialize Firebase Admin once
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
@@ -34,10 +33,10 @@ export async function POST(request: NextRequest) {
 
     console.log("Converted file:", { name: audioFile.name, size: audioFile.size })
 
-    // Use the correct Whisper model name
+
     const transcribedText = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: 'whisper-1', // Correct model name
+      model: 'whisper-1', 
       response_format: 'text',
     }) as string
 
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Transcribed text:", transcribedText)
 
-    // Forward transcription to check-text API
+
     const baseUrl = new URL(request.url)
     baseUrl.pathname = '/api/check-text'
     
@@ -59,7 +58,7 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'cookie': cookies // pass session cookies for auth
+          'cookie': cookies
         },
         body: JSON.stringify({ symptoms: transcribedText }),
       })
@@ -75,7 +74,7 @@ export async function POST(request: NextRequest) {
       answer = null
     }
 
-    // Save to Firebase
+ 
     await db.collection('queries').add({
       audioTranscription: transcribedText,
       answer: answer ?? '', 
