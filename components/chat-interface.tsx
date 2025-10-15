@@ -99,81 +99,103 @@ export function ChatInterface() {
   }, [isRecording])
 
   const handleSendMessage = async (
-    content: string,
-    type: 'text' | 'image' | 'audio',
-    file?: File
-  ) => {
-    let userContent = content
-    if (type === 'image' && file) {
-      userContent = URL.createObjectURL(file)
+  content: string,
+  type: 'text' | 'image' | 'audio',
+  file?: File
+) => {
+  let userContent = content
+  if (type === 'image' && file) {
+    userContent = URL.createObjectURL(file)
+  }
+  let userMessage: Message = {
+    id: Date.now().toString(),
+    type: 'user',
+    content: userContent,
+    contentType: type,
+    timestamp: new Date(),
+  }
+
+  setMessages(prev => [...prev, userMessage])
+  setIsLoading(true)
+
+  try {
+    let response
+    if (type === 'text') {
+      response = await fetch('/api/check-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symptoms: content }),
+      })
+    } else if (type === 'image' && file) {
+      const formData = new FormData()
+      formData.append('image', file)
+      response = await fetch('/api/check-image', { method: 'POST', body: formData })
+    } else if (type === 'audio' && file) {
+      const formData = new FormData()
+      formData.append('audio', file)
+      response = await fetch('/api/stream-audio', { method: 'POST', body: formData })
     }
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: userContent,
-      contentType: type,
+    if (response) {
+      const data = await response.json()
+      if (type === 'image') {
+        setMessages(prev => [
+          ...prev.slice(0, prev.length - 1),
+          { ...userMessage, content: data.imageData, contentType: 'image' }
+        ])
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: data.diagnosis || "Sorry, I couldn't process your request.",
+          contentType: 'text',
+          timestamp: new Date(),
+          transcription: data.transcription,
+        }
+        setMessages(prev => [...prev, botMessage])
+      } else if (type === 'audio') {
+
+        setMessages(prev => [
+          ...prev.slice(0, prev.length - 1),
+          {
+            ...userMessage,
+            transcription: data.transcription,
+            contentType: 'audio'
+          }
+        ])
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: data.diagnosis || "Sorry, I couldn't process your request.",
+          contentType: 'text',
+          timestamp: new Date(),
+          transcription: data.transcription,
+        }
+        setMessages(prev => [...prev, botMessage])
+      } else {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: data.diagnosis || "Sorry, I couldn't process your request.",
+          contentType: 'text',
+          timestamp: new Date(),
+          transcription: data.transcription,
+        }
+        setMessages(prev => [...prev, botMessage])
+      }
+    }
+  } catch {
+    const errorMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      type: 'bot',
+      content: 'Sorry, there was an error processing your request. Please try again.',
+      contentType: 'text',
       timestamp: new Date(),
     }
-    setMessages(prev => [...prev, userMessage])
-    setIsLoading(true)
-    try {
-      let response
-      if (type === 'text') {
-        response = await fetch('/api/check-text', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ symptoms: content }),
-        })
-      } else if (type === 'image' && file) {
-        const formData = new FormData()
-        formData.append('image', file)
-        response = await fetch('/api/check-image', { method: 'POST', body: formData })
-      } else if (type === 'audio' && file) {
-        const formData = new FormData()
-        formData.append('audio', file)
-        response = await fetch('/api/stream-audio', { method: 'POST', body: formData })
-      }
-      if (response) {
-        const data = await response.json()
-        if (type === 'image') {
-          setMessages(prev => [
-            ...prev.slice(0, prev.length - 1),
-            { ...userMessage, content: data.imageData, contentType: 'image' }
-          ])
-          const botMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            type: 'bot',
-            content: data.diagnosis || "Sorry, I couldn't process your request.",
-            contentType: 'text',
-            timestamp: new Date(),
-            transcription: data.transcription,
-          }
-          setMessages(prev => [...prev, botMessage])
-        } else {
-          const botMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            type: 'bot',
-            content: data.diagnosis || "Sorry, I couldn't process your request.",
-            contentType: 'text',
-            timestamp: new Date(),
-            transcription: data.transcription,
-          }
-          setMessages(prev => [...prev, botMessage])
-        }
-      }
-    } catch {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        content: 'Sorry, there was an error processing your request. Please try again.',
-        contentType: 'text',
-        timestamp: new Date(),
-      }
-      setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
+    setMessages(prev => [...prev, errorMessage])
+  } finally {
+    setIsLoading(false)
   }
+}
+
 
   const handleSelectChat = (chat: any) => {
     if (chat.type === 'image' && chat.imageData) {

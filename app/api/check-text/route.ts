@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OpenAI } from 'openai'
 import admin from 'firebase-admin'
-import { currentUser } from '@clerk/nextjs/server' 
+import { currentUser } from '@clerk/nextjs/server'
 
-
-import type { ServiceAccount } from 'firebase-admin'
-import serviceAccountJson from '@/firebase-service-account.json'
-const serviceAccount = serviceAccountJson as ServiceAccount
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}')
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: process.env.FIREBASE_DB_URL
+    databaseURL: process.env.FIREBASE_DB_URL,
   })
 }
 const db = admin.firestore()
