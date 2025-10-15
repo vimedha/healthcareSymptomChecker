@@ -1,6 +1,6 @@
 'use client'
 import { SignOutButton, useUser } from '@clerk/nextjs'
-import DashboardPage from './(dashboard)/page'
+import DashboardPage from './dashboard/page'
 
 export default function HomePage() {
   const { user } = useUser()
