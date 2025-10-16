@@ -15,6 +15,8 @@ export interface Message {
   contentType: 'text' | 'image' | 'audio'
   timestamp: Date | string
   transcription?: string
+  previewUrl?: string 
+  imageData?: string  
 }
 
 export function ChatInterface() {
@@ -29,12 +31,20 @@ export function ChatInterface() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const previewUrlsRef = useRef<Set<string>>(new Set()) 
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
+
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
+      previewUrlsRef.current.clear()
+    }
+  }, [])
 
   const handleSendText = () => {
     if (message.trim() && !isLoading) {
@@ -56,7 +66,11 @@ export function ChatInterface() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      handleSendMessage(`Image: ${file.name}`, 'image', file)
+      const previewUrl = URL.createObjectURL(file)
+      previewUrlsRef.current.add(previewUrl)
+      console.log('handleImageUpload: previewUrl created:', previewUrl)
+      handleSendMessage(previewUrl, 'image', file, previewUrl)
+      e.target.value = ''
     }
   }
 
@@ -98,26 +112,39 @@ export function ChatInterface() {
     }
   }, [isRecording])
 
-  const handleSendMessage = async (
+const handleSendMessage = async (
   content: string,
   type: 'text' | 'image' | 'audio',
-  file?: File
+  file?: File,
+  previewUrl?: string 
 ) => {
   let userContent = content
   if (type === 'image' && file) {
-    userContent = URL.createObjectURL(file)
+    userContent = previewUrl || URL.createObjectURL(file)
+    if (previewUrl) {
+      previewUrlsRef.current.add(previewUrl)
+    }
   }
-  let userMessage: Message = {
+  const userMessage: Message = {
     id: Date.now().toString(),
     type: 'user',
     content: userContent,
     contentType: type,
     timestamp: new Date(),
+    previewUrl: type === 'image' ? previewUrl : undefined, 
+    imageData: undefined 
   }
 
-  setMessages(prev => [...prev, userMessage])
-  setIsLoading(true)
+  if (type === 'audio') {
+    setMessages(prev => [
+      ...prev, 
+      { ...userMessage, transcription: 'Transcribing...' }
+    ])
+  } else {
+    setMessages(prev => [...prev, userMessage])
+  }
 
+  setIsLoading(true)
   try {
     let response
     if (type === 'text') {
@@ -137,10 +164,20 @@ export function ChatInterface() {
     }
     if (response) {
       const data = await response.json()
+      console.log('handleSendMessage response data:', data)
       if (type === 'image') {
+        if (userMessage.previewUrl && previewUrlsRef.current.has(userMessage.previewUrl)) {
+          URL.revokeObjectURL(userMessage.previewUrl)
+          previewUrlsRef.current.delete(userMessage.previewUrl)
+        }
         setMessages(prev => [
           ...prev.slice(0, prev.length - 1),
-          { ...userMessage, content: data.imageData, contentType: 'image' }
+          { 
+            ...userMessage, 
+            content: data.imageData || userMessage.content, 
+            previewUrl: undefined, 
+            imageData: data.imageData 
+          }
         ])
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -152,14 +189,9 @@ export function ChatInterface() {
         }
         setMessages(prev => [...prev, botMessage])
       } else if (type === 'audio') {
-
         setMessages(prev => [
           ...prev.slice(0, prev.length - 1),
-          {
-            ...userMessage,
-            transcription: data.transcription,
-            contentType: 'audio'
-          }
+          { ...userMessage, transcription: data.transcription || "" }
         ])
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -182,7 +214,8 @@ export function ChatInterface() {
         setMessages(prev => [...prev, botMessage])
       }
     }
-  } catch {
+  } catch (error) {
+    console.error('handleSendMessage error:', error)
     const errorMessage: Message = {
       id: (Date.now() + 1).toString(),
       type: 'bot',
@@ -197,8 +230,20 @@ export function ChatInterface() {
 }
 
 
-  const handleSelectChat = (chat: any) => {
+  const handleSelectChat = async (chat: any) => {
+    console.log('handleSelectChat chat:', chat)
     if (chat.type === 'image' && chat.imageData) {
+      try {
+        const response = await fetch(`/api/check-image?imageName=${encodeURIComponent(chat.imageName)}`)
+        const data = await response.json()
+        if (data.success && data.imageData) {
+          chat.imageData = data.imageData
+          console.log('Fetched imageData successfully')
+        }
+      } catch (error) {
+        console.error('Failed to fetch image data:', error)
+      }
+      console.log('handleSelectChat loading image chat with imageData length:', chat.imageData.length)
       setMessages([
         {
           id: chat.id + '-u',
@@ -206,6 +251,26 @@ export function ChatInterface() {
           content: chat.imageData,
           contentType: 'image',
           timestamp: chat.createdAt,
+          imageData: chat.imageData, 
+          previewUrl: undefined, 
+        },
+        {
+          id: chat.id + '-b',
+          type: 'bot',
+          content: chat.diagnosis,
+          contentType: 'text',
+          timestamp: chat.createdAt,
+        },
+      ])
+    } else if (chat.type === 'audio' && chat.transcription) {
+      setMessages([
+        {
+          id: chat.id + '-u',
+          type: 'user',
+          content: 'Voice recording',
+          contentType: 'audio',
+          timestamp: chat.createdAt,
+          transcription: chat.transcription,
         },
         {
           id: chat.id + '-b',

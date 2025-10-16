@@ -65,7 +65,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
         setRecordingTime(prev => prev + 1)
       }, 1000)
 
-      // Warm up API route
+      
       ;(async () => {
         try {
           const fd = new FormData()
