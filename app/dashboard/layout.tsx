@@ -8,7 +8,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Dashboard Header */}
+      
       <header className="bg-gradient-to-r from-blue-900 to-purple-900 border-b border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -46,12 +46,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </header>
 
-      {/* Main Content */}
+  
       <main className="max-w-6xl mx-auto px-4 py-8">
         {children}
       </main>
 
-      {/* Footer */}
+     
       <footer className="border-t border-gray-700 bg-gray-800/50 mt-12">
         <div className="max-w-6xl mx-auto px-4 py-6 text-center text-gray-400 text-sm">
           © 2025 Healthcare Symptom Checker. All rights reserved.
