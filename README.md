@@ -49,7 +49,7 @@ components/
 ├── chat-sidebar.tsx          # Chat history sidebar
 ├── header.tsx                # App header
 ├── sidebar.tsx               # Main sidebar
-└── ui/                       # Radix UI components
+└── ui/                       # Shadcn UI components
     ├── avatar.tsx
     ├── badge.tsx
     ├── button.tsx
@@ -279,3 +279,4 @@ npm run lint     # run eslint
 
 ## License
 For educational use. Review third-party API terms (OpenAI, Clerk, Firebase) before production use.
+
